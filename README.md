@@ -133,3 +133,10 @@ missing/not a string, invalid JSON, or oversized body)
 ```bash
 npm test
 ```
+
+## What I'd add with more time
+
+- Live, as-you-type formatting and inline feedback in the UI.
+- A component test for the form (e.g. Testing Library) and a CI workflow.
+- Rate limiting and an OpenAPI document if this were a real, externally
+  consumed API.
