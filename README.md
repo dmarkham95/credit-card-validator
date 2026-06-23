@@ -34,15 +34,29 @@ credit-card-validator/
 
 ## Getting started
 
-Requirements: Node.js 20+ and npm 10+.
+Requirements: **Node.js 20.19+ (or 22.12+)** and npm 10+. Check with `node -v`.
+
+### Run it (recommended)
 
 ```bash
-npm install          # installs all workspaces
-npm run dev          # starts API (:3001) and client (:5173) together
+npm install
+npm start            # builds the client, then serves the whole app
 ```
 
-Open http://localhost:5173. The Vite dev server proxies `/api/*` to the
-Express server on port 3001, so there is nothing else to configure.
+Then open **http://localhost:3001**.
+
+This runs the entire app as a single Express server on one port — the API and
+the built UI are served from the same origin, so there's no second process and
+nothing to configure.
+
+### Development (hot reload)
+
+```bash
+npm run dev          # Vite UI on :5173 + API on :3001, with hot reload
+```
+
+Open http://localhost:5173. In dev the Vite server proxies `/api/*` to the
+Express server, so the front-end and back-end run as separate processes.
 
 ### Other scripts
 
@@ -50,7 +64,7 @@ Express server on port 3001, so there is nothing else to configure.
 npm test             # run the server test suite
 npm run typecheck    # type-check every workspace
 npm run lint         # lint the repo
-npm run build        # production build of the client
+npm run build        # production build of the client only
 ```
 
 ## API
@@ -96,6 +110,11 @@ missing/not a string, invalid JSON, or oversized body)
   algorithm — its sole client-side check is "don't submit an empty box." This
   is the central requirement of the exercise, so the architecture makes it
   unmistakable: a separate Express service, not framework API routes.
+
+- **One server in production, two in development.** `npm start` serves the
+  built UI and the API from a single Express origin, so reviewing it is just
+  "install, start, open one URL" — no proxy or second process. `npm run dev`
+  keeps Vite's hot reload as a separate front-end during development.
 
 - **"Invalid card" is a `200`, not a `400`.** A number that fails Luhn is a
   *successful* validation with the answer "no". `400` is reserved for requests

@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import express, {
   type ErrorRequestHandler,
   type Request,
@@ -9,6 +12,12 @@ import type {
   ValidateCardResponse,
 } from "./types.js";
 import { validateCardNumber } from "./validateCardNumber.js";
+
+// The production build of the client. When it exists (after `npm run build`),
+// the server serves it directly so the whole app runs as one process on one
+// port — no separate dev server or proxy needed.
+const serverDir = path.dirname(fileURLToPath(import.meta.url)); // server/src
+const clientDist = path.resolve(serverDir, "../../client/dist");
 
 function badRequest(res: Response, message: string) {
   const body: ApiErrorResponse = {
@@ -51,6 +60,17 @@ export function createApp() {
       res.json(result);
     },
   );
+
+  // Serve the built client (if it has been built) from the same origin, so the
+  // app works as a single server with no proxy. In development the client runs
+  // on Vite instead and this block is simply skipped.
+  if (fs.existsSync(clientDist)) {
+    app.use(express.static(clientDist));
+    app.use((req, res, next) => {
+      if (req.method !== "GET" || req.path.startsWith("/api/")) return next();
+      res.sendFile(path.join(clientDist, "index.html"));
+    });
+  }
 
   // Translate body-parser failures (malformed JSON, oversized payloads) into
   // our typed error shape instead of Express's default HTML response.
